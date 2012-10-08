@@ -11,71 +11,82 @@ struct FileParser{
 		int numConnections;
 		int * connections;
 	};
-
+	bool success;
 	int numPoints;
 	Point * points;
 
 	FileParser()
-		:numPoints(0), points(0)
+		:numPoints(0), points(0), success(false)
 	{}
-	FileParser(char * fileName){
+	FileParser(char * fileName)
+		:numPoints(0), points(0), success(false){
 		Parse(fileName);
-	}
-	int GetNum(char * input, int count){
-		int ret = 0;
-		int places = 0;
-		int place = 0;
-		for(int i = 0; i < count; ++i){
-			if(input[i] == '\0')
-				break;
-			places++;
-		}
-		for(int i = places -1; i <= 0; --i){
-			if(input[0] < '0' || input[0] > '0')
-				continue;
-			ret += (  (int)input[i] - (int)'0') * pow((float)10, (float)place++);
-		}
-		return ret;
 	}
 	void Parse(char * fileName){
 		FileRAII file(fileName, "r");
-		char in[100];	
+		if(file.file == NULL || ferror(file.file) != 0)
+			return;
 
 		//Get to first line
-		memset(in, 0, 100 * sizeof(char));
-		while(in[0] == '\0')
-			fgets(in, 100, file.file);
-		//Parse numPoints
-		numPoints = GetNum(in, 100);
+		
+		fscanf(file.file, " %d ", &numPoints);
 
 		//Clear useless lines
-		memset(in, 0, 100 * sizeof(char));
-		while(in[0] == "\0")
-			fgets(in, 100, file.file);
-
 		//Fill Point coordinates
 		points = new Point[numPoints];
 		for(int i = 0; i < numPoints; ++i){
-			char num[10];
-			memset(num, 0, sizeof(char) * 10);
-			int size =0;
-			int start = 0;
-			int inNum = 0;
-			for(int p = 0; p < 100; ++p){
-				if(in[p] == ' '){
-					points[i].x = GetNum(num, 10); 
-					inNum = 0;
-					memset(num, 0, sizeof(char) * 10);
+			fscanf(file.file, " %d %d ", &points[i].x, &points[i].y);
+			if(feof(file.file))
+				return;
+		}
+		
+		char in[100];
+		memset(in, 0, 100 * sizeof(char));
+		int* connections = new int[numPoints];
+		for(int i = 0; i < numPoints; ++i){
+			fgets(in, 100, file.file);
+			if(feof(file.file))
+				return;
+			if(in[0] == '\n' || in[0] == '\0'){
+				--i;
+				continue;
+			}
+			int digits = 0;
+			int currNum = 0;
+			int pos = 0;
+			int arrayPos = 0;
+			memset(connections, 0, sizeof(int) * numPoints);
+			while(in[pos] != '\0'){
+				if(in[pos] == ' '){
+					if(digits != 0){
+						connections[arrayPos++] = currNum;
+						digits = 0;
+						currNum = 0;
+						
+					}
 				}
-				if(in[p] == '\0'){
-					points[i].y = GetNum(num, 10);
-					break;
+				if(in[pos] >= '0' && in[pos] <= '9'){
+					currNum *= 10;
+					currNum += (int)(in[pos] - '0');
+					++digits;
 				}
-				num[inNum++] = in[p];
+				++pos;
+			}
+			if(digits != 0){
+				connections[arrayPos++] = currNum;
+				digits = 0;
+				currNum = 0;
+			}
+			points[i].numConnections = arrayPos;
+			if(arrayPos == 0)
+				continue;
+			points[i].connections = new int[arrayPos];
+			for(int y = 0; y < arrayPos; ++y){
+				points[i].connections[y] = connections[y];
 			}
 		}
-
-
+		success = true;
+		delete[] connections;
 	}
 	
 

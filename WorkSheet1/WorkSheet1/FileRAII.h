@@ -4,11 +4,14 @@
 
 struct FileRAII{
 	FILE * file;
-	FileRAII(char * fileName, char * mode){
+	FileRAII(char * fileName, char * mode)
+		:file(NULL)
+	{
 		file = fopen(fileName, mode);
 	}
 	~FileRAII(){
-		fclose(file);
+		if(file != NULL)
+			fclose(file);
 	}
 };
 
