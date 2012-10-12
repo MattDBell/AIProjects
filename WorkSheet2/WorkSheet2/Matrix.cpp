@@ -30,14 +30,14 @@ Matrix::~Matrix()
 bool Matrix::Iterate(char player_move)
 {
 
-  player->Move(player_move);
+  player->Move(this);
 
   monster->Update();
   player->Update();
-
+  UpdateEvents();
   ProbabilityUpdate();
 
-  UpdateEvents();
+  
 
   //game over!!
   if (player->GetRow() == monster->GetRow() && 
@@ -219,23 +219,117 @@ void Matrix::PrintEvents()
 */
 void Matrix::ProbabilityUpdate()
 {
-	static bool firstRun = true;
+	static int sWidth = 0, sHeight = 0;
 	static Tile * cached = NULL;
-	if(firstRune){
-		cached = new Tile[width * height];
-		firstRun = false;
+	if(width > sWidth || height > sHeight){
+		if(cached != NULL)
+			delete cached;
+		sWidth = sWidth > width ? sWidth : width;
+		sHeight = sHeight > height ? sHeight: height;
+		cached = new Tile[sWidth * sHeight];
 	}
 	//cache last results
-	for(int x = 0; x < width; ++x){
+	
+
+	Prepare(cached);
+	UpdateOnMovement(cached);
+
+	
+	UpdateOnSmell(cached);
+
+	UpdateOnHear(cached);
+
+	UpdateOnFeel(cached);
+
+	for(int x= 0; x < width; ++x){
 		for(int y = 0; y < height; ++y){
-			for(int facing = 0; facing < 4; ++facing){
-				cached[x + y*width].P[facing] = Element(x,y).P[facing];
-			}
+			Tile & t = Element(x, y);
+			t.P[TILE] = t.P[UP] + t.P[DOWN] + t.P[LEFT] + t.P[RIGHT];
 		}
 	}
 	//iterate map using cached results
-  //obviously get rid of this
-  //Element(1,1).P[TILE] = .3333;
+	//obviously get rid of this
+	//Element(1,1).P[TILE] = .3333;
 
+}
+void Matrix::Prepare(Tile * cached){
+	for(int y = 0; y < height; ++y){
+		for(int x = 0; x < width; ++x){
+			for(int facing = 0; facing < 4; ++facing){
+				cached[x + y*width].P[facing] = Element(x,y).P[facing];
+				Element(x,y).P[facing] = 0;
+			}
+		}
+	}
+}
+void Matrix::UpdateOnMovement(Tile * cached){
+	for(int y = 0; y < height; ++y){
+		for(int x = 0; x < width; ++x){
+			for(int facing = 0; facing < TILE; ++facing){
+				int forwardChangeX = 0, forwardChangeY = 0;;
+				int rightDir = RIGHT;
+				int leftDir = LEFT;
+				switch(facing){
+					case UP:
+						forwardChangeY = y==0? 0 : -1;
+						rightDir = RIGHT;
+						leftDir= LEFT;
+						break;
+					case DOWN:
+						forwardChangeY = y== height-1? 0 : 1;
+						rightDir = LEFT;
+						leftDir = RIGHT;
+						break;
+					case LEFT:
+						forwardChangeX = x == 0 ? 0 : -1;
+						rightDir = UP;
+						leftDir = DOWN;
+						break;
+					case RIGHT:
+						forwardChangeX = x == width - 1 ? 0 : 1;
+						rightDir = DOWN;
+						leftDir = UP;
+						break;
+				}
+				Element(x, y).P[rightDir] += cached[x + y * width].P[facing] * P_TURN_RIGHT;
+				Element(x, y).P[leftDir] += cached[x + y * width].P[facing] * P_TURN_LEFT;
+				Element(x + forwardChangeX, y  + forwardChangeY).P[facing] += cached[x + y * width].P[facing] * P_FORWARD;
+
+			}
+		}
+	}
+}
+void Matrix::UpdateOnSmell(Tile * cached){
+	if((event & SMELL) != 0){
+		Prepare(cached);
+		float sum = 0;
+		for(int y = player->GetRow() - 1; y < player->GetRow() + 2; ++y){
+			if(y < 0 || y > height - 1)
+				continue;
+			for(int x = player->GetCol() - 1; x < player->GetCol() + 2; ++x){
+				if(x < 0 || x > width - 1)
+					continue;
+				for(int i = 0; i < TILE; ++i){
+					sum += cached[y + x * height].P[i];
+				}
+			}
+		}
+		for(int y = player->GetRow() - 1; y < player->GetRow() + 2; ++y){
+			if(y < 0 || y > height - 1)
+				continue;
+			for(int x = player->GetCol() -1; x < player->GetCol() + 2; ++x){
+				if(x < 0 || x > width - 1)
+					continue;
+				for(int i = 0; i < TILE; ++i){
+					Element(y, x).P[i] = cached[y + x * height].P[i] / sum;
+				}
+			}
+		}
+	}
+}
+void Matrix::UpdateOnHear(Tile * cached){
+
+}
+void Matrix::UpdateOnFeel(Tile * cached){
 
 }

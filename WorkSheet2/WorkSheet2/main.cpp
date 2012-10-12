@@ -11,7 +11,7 @@ using namespace std;
 
 int main()
 {
-  srand( time(NULL) );
+  srand( (unsigned int)time(NULL) );
 
   Matrix m(10,10);
   char player_move;
@@ -30,7 +30,7 @@ int main()
     m.Reveal();
 
     //uncomment to see the probability the monster is at any given location
-    //m.Print();
+    m.Print();
 
     cout << endl;
     cin >> player_move;

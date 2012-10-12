@@ -12,11 +12,12 @@
 
 using namespace std;
 
+class Matrix;
 enum {UP, DOWN, LEFT, RIGHT, TILE};
 
-#define P_FORWARD    .50
-#define P_TURN_LEFT  .25
-#define P_TURN_RIGHT .25
+#define P_FORWARD    .50f
+#define P_TURN_LEFT  .25f
+#define P_TURN_RIGHT .25f
 
 
 class Monster
@@ -25,7 +26,7 @@ class Monster
   Monster(int c, int r, int player);
   ~Monster();
   void Update();
-  void Move(char option);
+  void Move(Matrix * mat);
   int GetRow();             //accessor, get row of monster
   int GetCol();             //accessor, get column of monster
   int GetDir();             //accessor, get direction of monster

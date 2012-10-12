@@ -31,30 +31,37 @@ struct Tile
 */
 class Matrix
 {
- public:
-  Matrix();
-  Matrix(int,int);     //width,height
-  ~Matrix();
+	public:
+		Matrix();
+		Matrix(int,int);     //width,height
+		~Matrix();
 
-  bool Iterate(char);  //move the monster and yourself
-  void UpdateEvents();
-  void Print();        //print the map of probabilities
-  void Reveal();       //print the map showing the monster!
-  void PrintEvents();
-  void ProbabilityUpdate(); // the function you will be working on
+		bool Iterate(char);  //move the monster and yourself
+		void UpdateEvents();
+		void Print();        //print the map of probabilities
+		void Reveal();       //print the map showing the monster!
+		void PrintEvents();
+		void ProbabilityUpdate(); // the function you will be working on
 
-  Tile& Element(int, int); //reference map by (col, row)
+		
 
- private:
-  int event;
+		Tile& Element(int, int); //reference map by (col, row)
 
-  int width;
-  int height;
+	private:
+		int event;
 
-  vector<vector<Tile> > map;
+		int width;
+		int height;
 
-  Monster *monster;
-  Monster *player;
+		vector<vector<Tile> > map;
+
+		Monster *monster;
+		Monster *player;
+		void Prepare(Tile * cached);
+		void UpdateOnMovement(Tile * cached);
+		void UpdateOnSmell(Tile * cached);
+		void UpdateOnHear(Tile * cached);
+		void UpdateOnFeel(Tile * cached);
 };
 
 #endif
