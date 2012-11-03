@@ -134,8 +134,17 @@ float Distance(int row, int col, int toRow, int toCol){
 void Monster::Move(Matrix * mat)
 {
 	int targetRow = 0;
-	int targetCol = width - 1;
-	
+	int targetCol = 0;
+	for(int y = 0; y < 10; ++y){
+		for(int x = 0; x < 10; ++x){
+			if(mat->Element(x, y).P[TILE] > mat->Element(targetCol, targetRow).P[TILE]){
+				targetRow = y;
+				targetCol = x;
+			}
+		}
+	}
+
+
 	Step * curr = new Step();
 	Step * closed = NULL;
 	curr->row = row;
@@ -194,7 +203,8 @@ void Monster::Move(Matrix * mat)
 			adding->col = endCol;
 			adding->row = endRow;
 			adding->facing = endFacing;
-			adding->gTohere = curr->gTohere + 0.02f + mat->Element(row, col).P[TILE] * 50;
+			float inverseProbability = 1 - mat->Element(endCol, endRow).P[TILE];
+			adding->gTohere = curr->gTohere + 0.02f + inverseProbability * 500;
 			adding->hFromHere = Distance(endCol, endRow, targetRow, targetCol);
 			adding->lastStep = curr;
 			adding->nextStepInList = toAdd;
