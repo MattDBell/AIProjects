@@ -2,13 +2,13 @@
 #include "Matrix.h"
 
 
-Matrix::Matrix() : width(0), height(0)
+Matrix::Matrix() : width(0), height(0), event(0)
 {  
 }
 
 
 //generating vector of rows
-Matrix::Matrix(int w, int h) : width(w), height(h)
+Matrix::Matrix(int w, int h) : width(w), height(h), event(0)
 {
   map.resize(w);
   for (int i=0; i<h; ++i)
@@ -172,7 +172,7 @@ Tile& Matrix::Element(int col, int row)
     return map[0][0];
   }
 
-  return map[row][col];
+  return map[col][row];
 }
 
 
@@ -310,7 +310,7 @@ void Matrix::UpdateOnSmell(Tile * cached){
 				if(x < 0 || x > width - 1)
 					continue;
 				for(int i = 0; i < TILE; ++i){
-					sum += cached[y + x * height].P[i];
+					sum += cached[x + y * width].P[i];
 				}
 			}
 		}
@@ -321,15 +321,65 @@ void Matrix::UpdateOnSmell(Tile * cached){
 				if(x < 0 || x > width - 1)
 					continue;
 				for(int i = 0; i < TILE; ++i){
-					Element(y, x).P[i] = cached[y + x * height].P[i] / sum;
+					Element(x, y).P[i] = cached[x + y * width].P[i] / sum;
 				}
 			}
 		}
 	}
 }
 void Matrix::UpdateOnHear(Tile * cached){
-
+	if((event & HEAR) != 0){
+		Prepare(cached);
+		int playerRow = player->GetRow();
+		int playerCol = player->GetCol();
+		float sum = 0;
+		for(int y = 0; y < height; ++y){
+			int x = 0;
+			for(int i = 0; i < TILE; ++i){
+				sum += cached[x + y * width].P[i];
+			}
+		}
+		for(int y = 0; y < height; ++y){
+			int x = 0;
+			
+		}
+	}
 }
 void Matrix::UpdateOnFeel(Tile * cached){
+	if((event & FEEL) != 0){
+		Prepare(cached);
+		int playerRow = player->GetRow();
+		int playerCol = player->GetCol();
+		float sum = Element(playerCol, playerRow).P[TILE];
+		for(int y = 0; y < height; ++y){
+			if(y != playerRow){
+				sum += Element(playerCol, y).P[TILE];
+			}
+		}
+		for(int x = 0; x < width; ++x){
+			if(x != playerCol){
+				sum += Element(x, playerRow).P[TILE];
+			}
+		}
 
+		for(int i = 0; i < TILE; ++i){
+			Element(playerRow, playerCol).P[i] = cached[playerCol + playerRow * width].P[i] / sum;
+		}
+
+		for(int y = 0; y < height; ++y){
+			if(y != playerRow){
+				for(int i = 0; i < TILE; ++i){
+					Element(playerCol, y).P[i] = cached[playerCol + y * width].P[i] / sum;
+				}
+			}
+		}
+		for(int x = 0; x < width; ++x){
+			if(x != playerCol){
+				for(int i = 0; i < TILE; ++i){
+					Element(x, playerRow).P[i] = cached[x + playerRow * width].P[i] / sum;
+				}
+
+			}
+		}
+	}
 }
