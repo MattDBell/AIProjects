@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LogicField.h"
+				>
+			</File>
+			<File
 				RelativePath=".\minefield.h"
 				>
 			</File>

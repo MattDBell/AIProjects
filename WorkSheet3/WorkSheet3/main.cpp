@@ -53,7 +53,7 @@ int main()
     cout << "YOU WINNER!!\n";
   else if (tile_value == BOMB)
     cout << "YOUR HEAD ASPLODE!!\n";
-  
+  delete minefield;
   return 0;
 }
 
