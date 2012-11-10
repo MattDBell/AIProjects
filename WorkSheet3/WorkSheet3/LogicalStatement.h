@@ -1,23 +1,45 @@
-enum RESULT{
+#ifndef LOGICALSTATEMENT_H
+#define LOGICALSTATEMENT_H
+
+enum RESULT {
 	FALSE,
 	TRUE,
-	CANNOT_RESOLVE,
+	UNRESOLVED,
 	TOTAL;
-}
+};
 
 class LogicalStatement{
-	virtual void Resolve() = 0;
+public:
+	virtual RESULT Resolve() = 0;
 };
 
-class AndStatement: public LogicalStatement{
-	LogicalStatement * statements[2];
-	virtual void Resolve(){
-		Result results[2];
-		results[0] = statements[0]->Resolve();
-		results[1] = statements[1]->Resolve();
-
-		if(results[0] == CANNOT_RESOLVE ||results[1] == CANNOT_RESOLVE)
-			return CANNOT_RESOLVE;
-		
+class AndStatement : public LogicalStatement{
+	LogicalStatement ** statements;
+	uint8_t numStatements;
+public:
+	AndStatement(uint8_t numStatements)
+		:numStatements(numStatements)
+	{
+		statements = new LogicalStatemnt*[numStatements];
+	}
+	void AddStatement(uint8_t slot, LogicalStatement* statement){
+		if(slot < numStatements)
+			statements[slot] = statement;
+	}
+	virtual RESULT Resolve(){
+		RESULT res = TRUE;
+		for(uint8_t size = 0; size < numStatements; ++size){
+			RESULT curRes = statements[0]->Resolve();
+			if(curRes == FALSE)
+				res = FALSE;
+			if(curRes == UNRESOLVED){
+				res = UNRESOLVED;
+				break;
+			}
+		}
+		return res;
 	}
 };
+
+
+#endif//LOGICALSTATEMENT_H
